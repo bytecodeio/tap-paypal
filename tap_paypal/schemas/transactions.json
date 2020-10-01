@@ -1,0 +1,424 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+      "transaction_details": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "transaction_info": {
+              "type": "object",
+              "properties": {
+                "paypal_account_id": {
+                  "type": "string"
+                },
+                "transaction_id": {
+                  "type": "string"
+                },
+                "transaction_event_code": {
+                  "type": "string"
+                },
+                "transaction_initiation_date": {
+                  "type": "string"
+                },
+                "transaction_updated_date": {
+                  "type": "string"
+                },
+                "transaction_amount": {
+                  "type": "object",
+                  "properties": {
+                    "currency_code": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "currency_code",
+                    "value"
+                  ]
+                },
+                "fee_amount": {
+                  "type": "object",
+                  "properties": {
+                    "currency_code": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "currency_code",
+                    "value"
+                  ]
+                },
+                "insurance_amount": {
+                  "type": "object",
+                  "properties": {
+                    "currency_code": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "currency_code",
+                    "value"
+                  ]
+                },
+                "shipping_amount": {
+                  "type": "object",
+                  "properties": {
+                    "currency_code": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "currency_code",
+                    "value"
+                  ]
+                },
+                "shipping_discount_amount": {
+                  "type": "object",
+                  "properties": {
+                    "currency_code": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "currency_code",
+                    "value"
+                  ]
+                },
+                "transaction_status": {
+                  "type": "string"
+                },
+                "transaction_subject": {
+                  "type": "string"
+                },
+                "transaction_note": {
+                  "type": "string"
+                },
+                "invoice_id": {
+                  "type": "string"
+                },
+                "custom_field": {
+                  "type": "string"
+                },
+                "protection_eligibility": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "paypal_account_id",
+                "transaction_id",
+                "transaction_event_code",
+                "transaction_initiation_date",
+                "transaction_updated_date",
+                "transaction_amount",
+                "fee_amount",
+                "insurance_amount",
+                "shipping_amount",
+                "shipping_discount_amount",
+                "transaction_status",
+                "transaction_subject",
+                "transaction_note",
+                "invoice_id",
+                "custom_field",
+                "protection_eligibility"
+              ]
+            },
+            "payer_info": {
+              "type": "object",
+              "properties": {
+                "account_id": {
+                  "type": "string"
+                },
+                "email_address": {
+                  "type": "string"
+                },
+                "address_status": {
+                  "type": "string"
+                },
+                "payer_status": {
+                  "type": "string"
+                },
+                "payer_name": {
+                  "type": "object",
+                  "properties": {
+                    "given_name": {
+                      "type": "string"
+                    },
+                    "surname": {
+                      "type": "string"
+                    },
+                    "alternate_full_name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "given_name",
+                    "surname",
+                    "alternate_full_name"
+                  ]
+                },
+                "country_code": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "account_id",
+                "email_address",
+                "address_status",
+                "payer_status",
+                "payer_name",
+                "country_code"
+              ]
+            },
+            "shipping_info": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "address": {
+                  "type": "object",
+                  "properties": {
+                    "line1": {
+                      "type": "string"
+                    },
+                    "line2": {
+                      "type": "string"
+                    },
+                    "city": {
+                      "type": "string"
+                    },
+                    "country_code": {
+                      "type": "string"
+                    },
+                    "postal_code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "line1",
+                    "line2",
+                    "city",
+                    "country_code",
+                    "postal_code"
+                  ]
+                }
+              },
+              "required": [
+                "name",
+                "address"
+              ]
+            },
+            "cart_info": {
+              "type": "object",
+              "properties": {
+                "item_details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "item_code": {
+                        "type": "string"
+                      },
+                      "item_name": {
+                        "type": "string"
+                      },
+                      "item_description": {
+                        "type": "string"
+                      },
+                      "item_quantity": {
+                        "type": "string"
+                      },
+                      "item_unit_price": {
+                        "type": "object",
+                        "properties": {
+                          "currency_code": {
+                            "type": "string",
+                            "enum": [
+                              "USD"
+                            ]
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "currency_code",
+                          "value"
+                        ]
+                      },
+                      "item_amount": {
+                        "type": "object",
+                        "properties": {
+                          "currency_code": {
+                            "type": "string",
+                            "enum": [
+                              "USD"
+                            ]
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "currency_code",
+                          "value"
+                        ]
+                      },
+                      "tax_amounts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "tax_amount": {
+                              "type": "object",
+                              "properties": {
+                                "currency_code": {
+                                  "type": "string",
+                                  "enum": [
+                                    "USD"
+                                  ]
+                                },
+                                "value": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "currency_code",
+                                "value"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "tax_amount"
+                          ]
+                        },
+                        "additionalItems": true
+                      },
+                      "total_item_amount": {
+                        "type": "object",
+                        "properties": {
+                          "currency_code": {
+                            "type": "string",
+                            "enum": [
+                              "USD"
+                            ]
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "currency_code",
+                          "value"
+                        ]
+                      },
+                      "invoice_number": {
+                        "type": "string",
+                        "enum": [
+                          "Invoice-005"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "item_name",
+                      "item_quantity",
+                      "item_unit_price",
+                      "item_amount",
+                      "total_item_amount",
+                      "invoice_number"
+                    ]
+                  },
+                  "additionalItems": true
+                }
+              },
+              "required": [
+                "item_details"
+              ]
+            },
+            "store_info": {
+              "type": "object"
+            },
+            "auction_info": {
+              "type": "object"
+            },
+            "incentive_info": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "transaction_info",
+            "payer_info",
+            "shipping_info",
+            "cart_info",
+            "store_info",
+            "auction_info",
+            "incentive_info"
+          ]
+        },
+        "additionalItems": true
+      },
+      "account_number": {
+        "type": "string"
+      },
+      "last_refreshed_datetime": {
+        "type": "string"
+      },
+      "page": {
+        "type": "integer"
+      },
+      "total_items": {
+        "type": "integer"
+      },
+      "total_pages": {
+        "type": "integer"
+      },
+      "links": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "href": {
+              "type": "string"
+            },
+            "rel": {
+              "type": "string"
+            },
+            "method": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "href",
+            "rel",
+            "method"
+          ]
+        },
+        "additionalItems": true
+      }
+    },
+    "required": [
+      "transaction_details",
+      "account_number",
+      "last_refreshed_datetime",
+      "page",
+      "total_items",
+      "total_pages",
+      "links"
+    ]
+  }
