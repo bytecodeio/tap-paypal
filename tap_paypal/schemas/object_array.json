@@ -1,0 +1,54 @@
+{
+  "incentive_info": {
+    "type": [
+      "null",
+      "object"
+    ],
+    "additionalProperties": true,
+    "properties": {
+      "incentive_detail": {
+        "anyOf": [
+          {
+            "type": "array",
+            "items": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "additionalProperties": true,
+              "properties": {
+                "incentive_type": {
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "incentive_code": {
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "incentive_amount": {
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "incentive_program_code": {
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    }
+  }
+}

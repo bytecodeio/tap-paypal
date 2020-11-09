@@ -49,7 +49,7 @@ class PaypalClient:
         url_parts = list(urllib.parse.urlparse(baseurl))
         url_parts[2] = version + '/' + path
         url_parts[4] = urllib.parse.urlencode(args_dict)
-        return urllib.parse.urlunparse(url_parts)
+        return urllib.parse.unquote_plus(urllib.parse.urlunparse(url_parts))
 
     def login(self):
         LOGGER.info("Refreshing token")
@@ -109,9 +109,11 @@ class PaypalClient:
         while next_url:
             LOGGER.info("Making request GET {}".format(next_url))
             body = self.make_request('GET', url=next_url)
+            LOGGER.info('BODY')
+            LOGGER.info(body)
             if body:
                 next_url = body.get('@odata.nextLink', None)
-                data = body.get('value')
+                data = body.get('transaction_details')
                 response.extend(data)
             else:
                 next_url = None
@@ -215,5 +217,6 @@ class PaypalClient:
 
         if response.status_code not in [200, 201, 202]:
             raise RuntimeError(response.text)
+
 
         return response.json()
