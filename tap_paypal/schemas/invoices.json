@@ -1,0 +1,90 @@
+{
+    "type": ["null", "object"],
+    "additionalProperties": false,
+    "properties": {
+        "id": {
+            "type": ["null", "string"]
+        },
+        "status": {
+            "type": ["null", "string"]
+        },
+        "detail_currency_code": {
+            "type": ["null", "string"]
+        },
+        "detail_note": {
+            "type": ["null", "string"]
+        },
+        "detail_invoice_number": {
+            "type": ["null", "string"]
+        },
+        "detail_invoice_date": {
+            "type": ["null", "string"]
+        },
+        "detail_payment_term": {
+            "type": ["null", "object"],
+            "additionalProperties": false,
+            "properties": {
+                "due_date": {
+                    "type": ["null", "string"]
+                }
+            }
+        },
+        "detail_viewed_by_recipient": {
+            "type": ["null", "boolean"]
+        },
+        "detail_group_draft": {
+            "type": ["null", "boolean"]
+        },
+        "detail_metadata": {
+            "create_time": {
+                "type": ["null", "string"],
+                "format": "date-time"
+            }
+        },
+        "invoicer": {
+            "email_address": {
+                "type": ["null", "string"]
+            }
+        },
+        "primary_recipients": {
+            "anyOf": [{
+                    "type": "array",
+                    "items": {
+                        "billing_info": {
+                            "type": ["null", "object"],
+                            "additionalProperties": false,
+                            "properties": {
+                                "email_address": {
+                                    "type": ["null", "string"]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "amount": {
+            "type": ["null", "object"],
+            "additionalProperties": false,
+            "properties": {
+                "currency_code": {
+                    "type": ["null", "string"]
+                },
+                "value": {
+                    "type": ["null", "string"]
+                }
+            }
+        },
+        "due_amount": {
+            "currency_code": {
+                "type": ["null", "string"]
+            },
+            "value": {
+                "type": ["null", "string"]
+            }
+        }
+    }
+}

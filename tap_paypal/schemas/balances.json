@@ -1,0 +1,74 @@
+{
+    "type": ["null", "object"],
+    "additionalProperties": false,
+    "properties": {
+        "balances": {
+            "anyOf": [{
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                            "currency": {
+                                "type": ["null", "string"]
+                            },
+                            "primary": {
+                                "type": ["null", "boolean"]
+                            },
+                            "total_balance": {
+                                "type": ["null", "object"],
+                                "additionalProperties": false,
+                                "properties": {
+                                    "currency_code": {
+                                        "type": ["null", "string"]
+                                    },
+                                    "value": {
+                                        "type": ["null", "string"]
+                                    }
+                                }
+                            },
+                            "available_balance": {
+                                "type": ["null", "object"],
+                                "additionalProperties": false,
+                                "properties": {
+                                    "currency_code": {
+                                        "type": ["null", "string"]
+                                    },
+                                    "value": {
+                                        "type": ["null", "string"]
+                                    }
+                                }
+                            },
+                            "withheld_balance": {
+                                "type": ["null", "object"],
+                                "additionalProperties": false,
+                                "properties": {
+                                    "currency_code": {
+                                        "type": ["null", "string"]
+                                    },
+                                    "value": {
+                                        "type": ["null", "string"]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "account_id": {
+            "type": ["null", "string"]
+        },
+        "as_of_time": {
+            "type": ["null", "string"],
+            "format": "date-time"
+        },
+        "last_refresh_time": {
+            "type": ["null", "string"],
+            "format": "date-time"
+        }
+    }
+}
