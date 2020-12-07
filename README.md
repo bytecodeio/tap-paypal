@@ -147,9 +147,9 @@ This tap:
     +--------------+---------+---------+
     | stream       | records | schemas |
     +--------------+---------+---------+
-    | transactions | 5       | 2       |
-    | balances     | 21      | 2       |
-    | invoices     | 2       | 2       |
+    | transactions | 5       | 1       |
+    | balances     | 21      | 1       |
+    | invoices     | 2       | 1       |
     +--------------+---------+---------+
     ```
 ---
