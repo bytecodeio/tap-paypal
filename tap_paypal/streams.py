@@ -145,11 +145,9 @@ class Transactions(Stream):
         start, end = self.get_absolute_start_end_time(
             startdate, lookback=int(self.config.get('lookback')))
         next_window = start + timedelta(days=DATE_WINDOW_SIZE)
-
         max_bookmark_dttm = start
 
         self.write_schema()
-
         with singer.metrics.record_counter(endpoint=self.name) as counter:
             while start != end:
                 start_str = start.strftime(DATETIME_FMT)
@@ -179,14 +177,15 @@ class Transactions(Stream):
                             if record_timestamp > max_bookmark_dttm:
                                 max_bookmark_value = strftime(record_timestamp)
 
-                            singer.write_record(
-                                stream_name=self.name,
-                                record=transformer.transform(
-                                    data=transformed_record,
-                                    schema=self.stream_schema,
-                                    metadata=self.stream_metadata),
-                                time_extracted=singer.utils.now())
-                            counter.increment()
+                            if record_timestamp > start:
+                                singer.write_record(
+                                    stream_name=self.name,
+                                    record=transformer.transform(
+                                        data=transformed_record,
+                                        schema=self.stream_schema,
+                                        metadata=self.stream_metadata),
+                                    time_extracted=singer.utils.now())
+                                counter.increment()
                 start = start + timedelta(days=DATE_WINDOW_SIZE)
                 next_window = next_window + timedelta(days=DATE_WINDOW_SIZE)
                 self.update_bookmark(self.name, max_bookmark_value)
@@ -197,7 +196,7 @@ class Balances(Stream):
     name = 'balances'
     version = 'v1'
     api_method = 'GET'
-    key_properties = ['account_id']
+    key_properties = ['account_id', 'as_of_time']
     replication_method = 'INCREMENTAL'
     replication_key = 'as_of_time'
     endpoint = 'reporting/balances'
@@ -228,7 +227,6 @@ class Balances(Stream):
                 with Transformer(
                         integer_datetime_fmt="no-integer-datetime-parsing"
                 ) as transformer:
-
                     record_timestamp = strptime_to_utc(
                         results[self.replication_key])
                     if record_timestamp > max_bookmark_dttm:
@@ -240,21 +238,10 @@ class Balances(Stream):
                                             schema=self.stream_schema,
                                             metadata=self.stream_metadata),
                                         time_extracted=singer.utils.now())
-                counter.increment()
+                    counter.increment()
                 start = start + timedelta(days=DATE_WINDOW_SIZE)
                 self.update_bookmark(self.name, max_bookmark_value)
             return counter.value
-
-    def transform(self, data, **kwargs):
-        account_id = kwargs['account_id']
-        last_refreshed_datetime = kwargs['last_refreshed_datetime']
-        response_data = {}
-        for field, obj in data.items():
-            for key, value in obj.items():
-                response_data[field + "_" + key] = value
-            response_data['account_id'] = account_id
-            response_data['last_refreshed_datetime'] = last_refreshed_datetime
-        return response_data
 
 
 class Invoices(Stream):

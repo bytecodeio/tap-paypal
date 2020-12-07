@@ -1,62 +1,392 @@
 {
-  "type": [
-    "null",
-    "object"
-  ],
-  "additionalProperties": true,
-  "properties": {
-    "transaction_info": {
-      "type": [
-        "null",
-        "object"
-      ],
-      "additionalProperties": true,
-      "patternProperties":
-    },
-    "payer_info": {
-      "type": [
-        "null",
-        "object"
-      ],
-      "additionalProperties": true
-    },
-    "account_number": {
-      "type": "string"
-    },
-    "start_date": {
-      "type": "string"
-    },
-    "end_date": {
-      "type": "string"
-    },
-    "last_refreshed_datetime": {
-      "type": "string"
-    },
-    "page": {
-      "type": "integer"
-    },
-    "total_items": {
-      "type": "integer"
-    },
-    "total_pages": {
-      "type": "integer"
-    },
-    "links": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "href": {
-            "type": "string"
-          },
-          "rel": {
-            "type": "string"
-          },
-          "method": {
-            "type": "string"
-          }
+    "definitions": {
+        "money": {
+            "type": ["null", "object"],
+            "additionalProperties": true,
+            "properties": {
+                "currency_code": {
+                    "type": ["null", "string"]
+                },
+                "value": {
+                    "type": ["null", "string"]
+                }
+            }
+        },
+        "phone": {
+            "type": ["null", "object"],
+            "additionalProperties": true,
+            "properties": {
+                "country_code": {
+                    "type": ["null", "string"]
+                },
+                "national_number": {
+                    "type": ["null", "string"]
+                },
+                "extension_number": {
+                    "type": ["null", "string"]
+                }
+            }
+        },
+        "name": {
+            "type": ["null", "object"],
+            "additionalProperties": true,
+            "properties": {
+                "prefix": {
+                    "type": ["null", "string"]
+                },
+                "given_name": {
+                    "type": ["null", "string"]
+                },
+                "surname": {
+                    "type": ["null", "string"]
+                },
+                "middle_name": {
+                    "type": ["null", "string"]
+                },
+                "suffix": {
+                    "type": ["null", "string"]
+                },
+                "alternate_full_name": {
+                    "type": ["null", "string"]
+                },
+                "full_name": {
+                    "type": ["null", "string"]
+                }
+            }
+        },
+        "address": {
+            "type": ["null", "object"],
+            "additionalProperties": true,
+            "properties": {
+                "line1": {
+                    "type": ["null", "string"]
+                },
+                "line2": {
+                    "type": ["null", "string"]
+                },
+                "city": {
+                    "type": ["null", "string"]
+                },
+                "state": {
+                    "type": ["null", "string"]
+                },
+                "country_code": {
+                    "type": ["null", "string"]
+                },
+                "postal_code": {
+                    "type": ["null", "string"]
+                }
+            }
+        },
+        "checkout_option": {
+            "type": ["null", "object"],
+            "additionalProperties": true,
+            "properties": {
+                "checkout_option_name": {
+                    "type": ["null", "string"]
+                },
+                "checkout_option_value": {
+                    "type": ["null", "string"]
+                }
+            }
         }
-      }
+    },
+    "type": ["null", "object"],
+    "additionalProperties": false,
+    "properties": {
+        "transaction_info_paypal_account_id": {
+            "type": ["null", "string"]
+        },
+        "transaction_info_transaction_id": {
+            "type": ["null", "string"]
+        },
+        "transaction_info_paypal_reference_id": {
+            "type": ["null", "string"]
+        },
+        "transaction_info_paypal_reference_id_type": {
+            "type": ["null", "string"]
+        },
+        "transaction_info_transaction_event_code": {
+            "type": ["null", "string"]
+        },
+        "transaction_info_transaction_initiation_date": {
+            "type": ["null", "string"],
+            "format": "date-time"
+        },
+        "transaction_info_transaction_updated_date": {
+            "type": ["null", "string"],
+            "format": "date-time"
+        },
+        "transaction_info_transaction_amount": {
+            "$ref": "#/definitions/money"
+        },
+        "transaction_info_fee_amount": {
+            "$ref": "#/definitions/money"
+        },
+        "transaction_info_discount_amount": {
+            "$ref": "#/definitions/money"
+        },
+        "transaction_info_insurance_amount": {
+            "$ref": "#/definitions/money"
+        },
+        "transaction_info_sales_tax_amount": {
+            "$ref": "#/definitions/money"
+        },
+        "transaction_info_shipping_amount": {
+            "$ref": "#/definitions/money"
+        },
+        "transaction_info_shipping_discount_amount": {
+            "$ref": "#/definitions/money"
+        },
+        "transaction_info_shipping_tax_amount": {
+            "$ref": "#/definitions/money"
+        },
+        "transaction_info_other_amount": {
+            "$ref": "#/definitions/money"
+        },
+        "transaction_info_tip_amount": {
+            "$ref": "#/definitions/money"
+        },
+        "transaction_info_transaction_status": {
+            "type": ["null", "string"]
+        },
+        "transaction_info_transaction_subject": {
+            "type": ["null", "string"]
+        },
+        "transaction_info_transaction_note": {
+            "type": ["null", "string"]
+        },
+        "transaction_info_payment_tracking_id": {
+            "type": ["null", "string"]
+        },
+        "transaction_info_bank_reference_id": {
+            "type": ["null", "string"]
+        },
+        "transaction_info_ending_balance": {
+            "$ref": "#/definitions/money"
+        },
+        "transaction_info_available_balance": {
+            "$ref": "#/definitions/money"
+        },
+        "transaction_info_invoice_id": {
+            "type": ["null", "string"]
+        },
+        "transaction_info_custom_field": {
+            "type": ["null", "string"]
+        },
+        "transaction_info_protection_eligibility": {
+            "type": ["null", "string"]
+        },
+        "transaction_info_credit_term": {
+            "type": ["null", "string"]
+        },
+        "transaction_info_credit_transactional_fee": {
+            "$ref": "#/definitions/money"
+        },
+        "transaction_info_credit_promotional_fee": {
+            "$ref": "#/definitions/money"
+        },
+        "transaction_info_annual_percentage_rate": {
+            "type": ["null", "string"]
+        },
+        "transaction_info_payment_method_type": {
+            "type": ["null", "string"]
+        },
+        "payer_info_account_id": {
+            "type": ["null", "string"]
+        },
+        "payer_info_email_address": {
+            "type": ["null", "string"]
+        },
+        "payer_info_phone_number": {
+            "$ref": "#/definitions/phone"
+        },
+        "payer_info_address_status": {
+            "type": ["null", "string"]
+        },
+        "payer_info_payer_status": {
+            "type": ["null", "string"]
+        },
+        "payer_info_payer_name": {
+            "$ref": "#/definitions/name"
+        },
+        "payer_info_country_code": {
+            "type": ["null", "string"]
+        },
+        "payer_info_address": {
+            "$ref": "#/definitions/address"
+        },
+        "shipping_info_name": {
+            "type": ["null", "string"]
+        },
+        "shipping_info_method": {
+            "type": ["null", "string"]
+        },
+        "shipping_info_address": {
+            "$ref": "#/definitions/address"
+        },
+        "shipping_info_secondary_shipping_address": {
+            "$ref": "#/definitions/address"
+        },
+        "cart_info_item_details": {
+            "anyOf": [{
+                    "type": "array",
+                    "items": {
+                        "type": ["null", "object"],
+                        "additionalProperties": true,
+                        "properties": {
+                            "item_code": {
+                                "type": ["null", "string"]
+                            },
+                            "item_name": {
+                                "type": ["null", "string"]
+                            },
+                            "item_description": {
+                                "type": ["null", "string"]
+                            },
+                            "item_options": {
+                                "type": ["null", "string"]
+                            },
+                            "item_quantity": {
+                                "type": ["null", "string"]
+                            },
+                            "item_unit_price": {
+                                "$ref": "#/definitions/money"
+                            },
+                            "item_amount": {
+                                "$ref": "#/definitions/money"
+                            },
+                            "discount_amount": {
+                                "$ref": "#/definitions/money"
+                            },
+                            "adjustment_amount": {
+                                "$ref": "#/definitions/money"
+                            },
+                            "gift_wrap_amount": {
+                                "$ref": "#/definitions/money"
+                            },
+                            "tax_percentage": {
+                                "type": ["null", "string"]
+                            },
+                            "tax_amounts": {
+                                "anyOf": [{
+                                        "type": "array",
+                                        "items": {
+                                            "type": ["null", "object"],
+                                            "additionalProperties": true,
+                                            "properties": {
+                                                "tax_amount": {
+                                                    "$ref": "#/definitions/money"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
+                            },
+                            "basic_shipping_amount": {
+                                "$ref": "#/definitions/money"
+                            },
+                            "extra_shipping_amount": {
+                                "$ref": "#/definitions/money"
+                            },
+                            "handling_amount": {
+                                "$ref": "#/definitions/money"
+                            },
+                            "insurance_amount": {
+                                "$ref": "#/definitions/money"
+                            },
+                            "total_item_amount": {
+                                "$ref": "#/definitions/money"
+                            },
+                            "invoice_number": {
+                                "type": ["null", "string"]
+                            },
+                            "checkout_options": {
+                                "anyOf": [{
+                                        "type": "array",
+                                        "items": {
+                                            "type": ["null", "object"],
+                                            "additionalProperties": true,
+                                            "properties": {
+                                                "checkout_option": {
+                                                    "$ref": "#/definitions/checkout_option"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "cart_info_tax_inclusive": {
+            "type": ["null", "boolean"]
+        },
+        "cart_info_paypal_invoice_id": {
+            "type": ["null", "string"]
+        },
+        "store_info_store_id": {
+            "type": ["null", "string"]
+        },
+        "store_info_terminal_id": {
+            "type": ["null", "string"]
+        },
+        "auction_info_auction_site": {
+            "type": ["null", "string"]
+        },
+        "auction_info_auction_item_site": {
+            "type": ["null", "string"]
+        },
+        "auction_info_auction_buyer_id": {
+            "type": ["null", "string"]
+        },
+        "auction_info_auction_closing_date": {
+            "type": ["null", "string"],
+            "format": "date-time"
+        },
+        "incentive_info": {
+            "type": ["null", "object"],
+            "additionalProperties": true,
+            "properties": {
+                "incentive_info_incentive_detail": {
+                    "anyOf": [{
+                            "type": "array",
+                            "items": {
+                                "type": ["null", "object"],
+                                "additionalProperties": true,
+                                "properties": {
+                                    "incentive_type": {
+                                        "type": ["null", "string"]
+                                    },
+                                    "incentive_code": {
+                                        "type": ["null", "string"]
+                                    },
+                                    "incentive_amount": {
+                                        "$ref": "#/definitions/money"
+                                    },
+                                    "incentive_program_code": {
+                                        "type": ["null", "string"]
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                }
+            }
+        }
     }
-  }
 }
