@@ -1,10 +1,9 @@
-import inspect
 import json
 import sys
 
 import singer
-from singer import Transformer, metadata
-from singer.utils import strftime, strptime_to_utc
+from singer import metadata
+from singer.utils import strptime_to_utc
 
 from tap_paypal.catalog import generate_catalog
 from tap_paypal.client import PaypalClient
@@ -36,7 +35,6 @@ def sync_streams(client, config, catalog, state):
         stream_metadata = metadata.to_map(catalog_entry.metadata)
         stream = AVAILABLE_STREAMS[catalog_entry.stream](client=client,
                                                          config=config,
-                                                         catalog=catalog,
                                                          stream_schema=stream_schema,
                                                          stream_metadata=stream_metadata,
                                                          state=state)
@@ -50,12 +48,9 @@ def sync_streams(client, config, catalog, state):
                                             config['start_date'])
         bookmark_dttm = strptime_to_utc(bookmark_date)
 
-        if stream.replication_method == 'FULL_TABLE':
-            record_count = stream.sync(client)
-            LOGGER.info('Synced: {}, total_records: {}'.format(stream.name, record_count))
-        else:
-            record_count = stream.sync(client, startdate=bookmark_dttm)
-            LOGGER.info('Synced: {}, total_records: {}'.format(stream.name, record_count))
+        record_count = stream.sync(client, startdate=bookmark_dttm)
+        LOGGER.info('Synced: {}, total_records: {}'.format(stream.name, record_count))
+
         stream.update_currently_syncing(None)
         stream.write_state()
         LOGGER.info('Finished Sync..')
