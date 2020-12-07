@@ -147,7 +147,6 @@ class Transactions(Stream):
         next_window = start + timedelta(days=DATE_WINDOW_SIZE)
         max_bookmark_dttm = start
 
-        self.write_schema()
         with singer.metrics.record_counter(endpoint=self.name) as counter:
             while start != end:
                 start_str = start.strftime(DATETIME_FMT)
@@ -213,8 +212,6 @@ class Balances(Stream):
 
         max_bookmark_dttm = start
 
-        self.write_schema()
-
         with singer.metrics.record_counter(endpoint=self.name) as counter:
             while start != end:
                 start_str = start.strftime(DATETIME_FMT)
@@ -269,8 +266,6 @@ class Invoices(Stream):
             startdate, lookback=int(self.config.get('lookback')))
 
         max_bookmark_dttm = start
-
-        self.write_schema()
 
         with singer.metrics.record_counter(endpoint=self.name) as counter:
             while start != end:
