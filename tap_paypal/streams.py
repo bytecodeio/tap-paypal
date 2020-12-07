@@ -1,24 +1,30 @@
 import os
 from datetime import timedelta
 
-import humps
 import singer
 import singer.metrics
-from singer.utils import now, strptime_to_utc
-#from tap_ms_teams.client import GraphVersion
-from tap_paypal.transform import transform
+from singer import Transformer
+from singer.utils import now, strftime, strptime_to_utc
 
 LOGGER = singer.get_logger()
-#TOP_API_PARAM_DEFAULT = 100
+DATE_WINDOW_SIZE = 1
+DATETIME_FMT = "%Y-%m-%dT%H:%M:%SZ"
+INVOICE_DATETIME_FMT = "%Y-%m-%d"
+
 
 class Stream:
     # pylint: disable=too-many-instance-attributes,no-member
-    def __init__(self, client=None, config=None, catalog=None, state=None):
+    def __init__(self,
+                 client=None,
+                 config=None,
+                 stream_schema=None,
+                 stream_metadata=None,
+                 state=None):
         self.client = client
         self.config = config
-        self.catalog = catalog
+        self.stream_schema = stream_schema
+        self.stream_metadata = stream_metadata
         self.state = state
-        #self.top = TOP_API_PARAM_DEFAULT
 
     @staticmethod
     def get_abs_path(path):
@@ -26,13 +32,18 @@ class Stream:
 
     def load_schema(self):
         schema_path = self.get_abs_path('schemas')
-        # pylint: disable=no-member
-        return singer.utils.load_json('{}/{}.json'.format(
+        schema = singer.utils.load_json('{}/{}.json'.format(
             schema_path, self.name))
+        if 'definitions' in schema:
+            resolved_schema = singer.resolve_schema_references(
+                schema, schema['definitions'])
+            del resolved_schema['definitions']
+        else:
+            resolved_schema = schema
+        return resolved_schema
 
     def write_schema(self):
         schema = self.load_schema()
-        # pylint: disable=no-member
         return singer.write_schema(stream_name=self.name,
                                    schema=schema,
                                    key_properties=self.key_properties)
@@ -66,16 +77,8 @@ class Stream:
         singer.write_state(self.state)
         LOGGER.info('Stream: {} - Currently Syncing'.format(stream_name))
 
-    # Returns max key and date time for all replication key data in record
-    def max_from_replication_dates(self, record):
-        date_times = {
-            dt: strptime_to_utc(record[dt])
-            for dt in self.valid_replication_keys if record[dt] is not None
-        }
-        max_key = max(date_times)
-        return date_times[max_key]
-
-    def remove_hours_local(self, dttm):
+    @staticmethod
+    def remove_hours_local(dttm):
         new_dttm = dttm.replace(hour=0, minute=0, second=0, microsecond=0)
         return new_dttm
 
@@ -85,51 +88,252 @@ class Stream:
         end_rounded = None
         # Round min_start, max_end to hours or dates
         start_rounded = self.remove_hours_local(start) - timedelta(days=1)
-        end_rounded = self.remove_hours_local(end) + timedelta(days=1)
+        end_rounded = self.remove_hours_local(end)
         return start_rounded, end_rounded
 
     # Determine absolute start and end times w/ attribution_window constraint
     # abs_start/end and window_start/end must be rounded to nearest hour or day (granularity)
     # Graph API enforces max history of 28 days
-    def get_absolute_start_end_time(self, last_dttm, attribution_window):
+    def get_absolute_start_end_time(self, last_dttm, lookback=0):
         now_dttm = now()
-        delta_days = (now_dttm - last_dttm).days
-        if delta_days < attribution_window:
-            start = now_dttm - timedelta(days=attribution_window)
-        # 28 days NOT including current
-        elif delta_days > 26:
-            start = now_dttm - timedelta(26)
-            LOGGER.info(
-                'Start date exceeds max. Setting start date to {}'
-                .format(start))
-        else:
-            start = last_dttm
-
-        abs_start, abs_end = self.round_times(start, now_dttm)
+        abs_start, abs_end = self.round_times(
+            last_dttm - timedelta(days=lookback), now_dttm)
         return abs_start, abs_end
 
-    # pylint: disable=unused-argument
-    def sync(self, client, startdate=None):
-        resources = client.get_all_resources(self.version,
-                                             self.endpoint,
-                                             #top=self.top,
-                                             orderby=self.orderby)
+    def sync(self, client, **kwargs):
+        pass
 
-        yield humps.decamelize(resources)
+    # pylint: disable=unused-argument
+    def transform(self, data, **kwargs):
+        LOGGER.info('No transform for stream: %s', self.name)
+        return data
+
 
 class Transactions(Stream):
     name = 'transactions'
     version = 'v1'
-    key_properties = ['transaction_id']
-    replication_method = 'FULL_TABLE'
-    replication_key = None
+    api_method = 'GET'
+    data_key = 'transaction_details'
+    key_properties = ['transaction_info_transaction_id']
+    replication_method = 'INCREMENTAL'
+    replication_key = 'transaction_info_transaction_updated_date'
     endpoint = 'reporting/transactions'
-    valid_replication_keys = []
-    date_fields = []
-    orderby = None
+    valid_replication_keys = ['transaction_info_transaction_updated_date']
+    account_id = 'account_number'
 
+    def transform(self, data, **kwargs):
+        account_id = kwargs['account_id']
+        last_refreshed_datetime = kwargs['last_refreshed_datetime']
+        response_data = {}
+        for field, obj in data.items():
+            for key, value in obj.items():
+                response_data[field + "_" + key] = value
+            response_data['account_id'] = account_id
+            response_data['last_refreshed_datetime'] = last_refreshed_datetime
+        return response_data
+
+    @staticmethod
+    def build_params(start_date, end_date):
+        return {
+            "start_date": start_date,
+            "end_date": end_date,
+            "fields": "all"
+        }
+
+    def sync(self, client, **kwargs):
+        startdate = kwargs['startdate']
+        start, end = self.get_absolute_start_end_time(
+            startdate, lookback=int(self.config.get('lookback')))
+        next_window = start + timedelta(days=DATE_WINDOW_SIZE)
+
+        max_bookmark_dttm = start
+
+        self.write_schema()
+
+        with singer.metrics.record_counter(endpoint=self.name) as counter:
+            while start != end:
+                start_str = start.strftime(DATETIME_FMT)
+                next_window_str = next_window.strftime(DATETIME_FMT)
+                params = self.build_params(start_date=start_str,
+                                           end_date=next_window_str)
+                results = client.get_paginated_data(self.api_method,
+                                                    self.version,
+                                                    self.endpoint,
+                                                    data_key=self.data_key,
+                                                    params=params)
+
+                max_bookmark_value = strftime(max_bookmark_dttm)
+                with Transformer(
+                        integer_datetime_fmt="no-integer-datetime-parsing"
+                ) as transformer:
+                    for page in results:
+                        for record in page.get(self.data_key):
+                            transformed_record = self.transform(
+                                record,
+                                account_id=page['account_number'],
+                                last_refreshed_datetime=page[
+                                    'last_refreshed_datetime'])
+
+                            record_timestamp = strptime_to_utc(
+                                transformed_record[self.replication_key])
+                            if record_timestamp > max_bookmark_dttm:
+                                max_bookmark_value = strftime(record_timestamp)
+
+                            singer.write_record(
+                                stream_name=self.name,
+                                record=transformer.transform(
+                                    data=transformed_record,
+                                    schema=self.stream_schema,
+                                    metadata=self.stream_metadata),
+                                time_extracted=singer.utils.now())
+                            counter.increment()
+                start = start + timedelta(days=DATE_WINDOW_SIZE)
+                next_window = next_window + timedelta(days=DATE_WINDOW_SIZE)
+                self.update_bookmark(self.name, max_bookmark_value)
+            return counter.value
+
+
+class Balances(Stream):
+    name = 'balances'
+    version = 'v1'
+    api_method = 'GET'
+    key_properties = ['account_id']
+    replication_method = 'INCREMENTAL'
+    replication_key = 'as_of_time'
+    endpoint = 'reporting/balances'
+    valid_replication_keys = ['as_of_time']
+
+    @staticmethod
+    def build_params(start_date):
+        return {"as_of_time": start_date}
+
+    def sync(self, client, **kwargs):
+        startdate = kwargs['startdate']
+        start, end = self.get_absolute_start_end_time(
+            startdate, lookback=int(self.config.get('lookback')))
+
+        max_bookmark_dttm = start
+
+        self.write_schema()
+
+        with singer.metrics.record_counter(endpoint=self.name) as counter:
+            while start != end:
+                start_str = start.strftime(DATETIME_FMT)
+                params = self.build_params(start_date=start_str)
+                results = client.get_balances(self.version,
+                                              self.endpoint,
+                                              params=params)
+
+                max_bookmark_value = strftime(max_bookmark_dttm)
+                with Transformer(
+                        integer_datetime_fmt="no-integer-datetime-parsing"
+                ) as transformer:
+
+                    record_timestamp = strptime_to_utc(
+                        results[self.replication_key])
+                    if record_timestamp > max_bookmark_dttm:
+                        max_bookmark_value = strftime(record_timestamp)
+
+                    singer.write_record(stream_name=self.name,
+                                        record=transformer.transform(
+                                            data=results,
+                                            schema=self.stream_schema,
+                                            metadata=self.stream_metadata),
+                                        time_extracted=singer.utils.now())
+                counter.increment()
+                start = start + timedelta(days=DATE_WINDOW_SIZE)
+                self.update_bookmark(self.name, max_bookmark_value)
+            return counter.value
+
+    def transform(self, data, **kwargs):
+        account_id = kwargs['account_id']
+        last_refreshed_datetime = kwargs['last_refreshed_datetime']
+        response_data = {}
+        for field, obj in data.items():
+            for key, value in obj.items():
+                response_data[field + "_" + key] = value
+            response_data['account_id'] = account_id
+            response_data['last_refreshed_datetime'] = last_refreshed_datetime
+        return response_data
+
+
+class Invoices(Stream):
+    name = 'invoices'
+    version = 'v2'
+    api_method = 'POST'
+    key_properties = ['id']
+    replication_method = 'INCREMENTAL'
+    replication_key = 'detail_invoice_date'
+    endpoint = 'invoicing/search-invoices'
+    account_id = 'account_id'
+    data_key = 'items'
+
+    @staticmethod
+    def build_body(start_date, end_date):
+        return {"invoice_date_range": {"start": start_date, "end": end_date}}
+
+    @staticmethod
+    def build_params():
+        return {"total_required": "true"}
+
+    def sync(self, client, **kwargs):
+        startdate = kwargs['startdate']
+        start, end = self.get_absolute_start_end_time(
+            startdate, lookback=int(self.config.get('lookback')))
+
+        max_bookmark_dttm = start
+
+        self.write_schema()
+
+        with singer.metrics.record_counter(endpoint=self.name) as counter:
+            while start != end:
+                start_str = start.strftime(INVOICE_DATETIME_FMT)
+                next_window_str = start_str
+                results = client.get_paginated_data(self.api_method,
+                                                    self.version,
+                                                    self.endpoint,
+                                                    data_key=self.data_key,
+                                                    params=self.build_params(),
+                                                    body=self.build_body(
+                                                        start_str,
+                                                        next_window_str))
+
+                max_bookmark_value = strftime(max_bookmark_dttm)
+                with Transformer(
+                        integer_datetime_fmt="no-integer-datetime-parsing"
+                ) as transformer:
+                    for page in results:
+                        for record in page.get(self.data_key):
+                            transformed_record = self.transform(record)
+
+                            record_timestamp = strptime_to_utc(
+                                transformed_record[self.replication_key])
+                            if record_timestamp > max_bookmark_dttm:
+                                max_bookmark_value = strftime(record_timestamp)
+
+                            singer.write_record(
+                                stream_name=self.name,
+                                record=transformer.transform(
+                                    data=transformed_record,
+                                    schema=self.stream_schema,
+                                    metadata=self.stream_metadata),
+                                time_extracted=singer.utils.now())
+                            counter.increment()
+                start = start + timedelta(days=DATE_WINDOW_SIZE)
+                self.update_bookmark(self.name, max_bookmark_value)
+            return counter.value
+
+    def transform(self, data, **kwargs):
+        transformed = data
+        for key in data['detail']:
+            denested_key = 'detail_' + key
+            transformed[denested_key] = data['detail'][key]
+        del transformed['detail']
+        return transformed
 
 
 AVAILABLE_STREAMS = {
-    "transactions": Transactions
+    "transactions": Transactions,
+    "balances": Balances,
+    "invoices": Invoices
 }
