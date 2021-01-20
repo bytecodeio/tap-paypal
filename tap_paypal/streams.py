@@ -137,7 +137,8 @@ class Transactions(Stream):
         return {
             "start_date": start_date,
             "end_date": end_date,
-            "fields": "all"
+            "fields": "all",
+            "balance_affecting_records_only":"N"
         }
 
     def sync(self, client, **kwargs):

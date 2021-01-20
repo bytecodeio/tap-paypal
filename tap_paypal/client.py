@@ -9,8 +9,8 @@ import singer.metrics
 
 LOGGER = singer.get_logger()  # noqa
 
-TOKEN_URL = "https://api.sandbox.paypal.com/v1/oauth2/token"
-BASE_URL = 'https://api.sandbox.paypal.com'
+TOKEN_URL = "https://api.paypal.com/v1/oauth2/token"
+BASE_URL = 'https://api.paypal.com'
 TOKEN_EXPIRATION_PERIOD = 3599
 TOP_API_PARAM_DEFAULT = 500
 
